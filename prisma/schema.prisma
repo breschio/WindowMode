@@ -1,0 +1,43 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model Diorama {
+  id              String   @id @default(cuid())
+  title           String
+  description     String?
+  compositeVvUrl  String?  // Pre-composited VV file path
+  renderMode      String   @default("layered") // "layered" | "composite"
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  objects         DioramaObject[]
+
+  @@index([createdAt])
+}
+
+model DioramaObject {
+  id          String   @id @default(cuid())
+  dioramaId   String
+  name        String
+  prompt      String?  // Original AI prompt
+  depthLayer  Int      @default(1)  // 0=background, 1=mid, 2=foreground
+  position    Json     // { x, y, z } in voxel space
+  scale       Float    @default(1.0)
+  rotation    Json?    // { x, y, z } rotation angles
+  vvUrl       String   // Path to .vv file
+  glbUrl      String?  // Original GLB file
+  imageUrl    String?  // Original generated image
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  diorama     Diorama  @relation(fields: [dioramaId], references: [id], onDelete: Cascade)
+
+  @@index([dioramaId])
+  @@index([depthLayer])
+}
